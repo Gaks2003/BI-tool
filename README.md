@@ -1,58 +1,63 @@
-# BI Tool - Business Intelligence Dashboard
+# Modern BI Dashboard
 
-A comprehensive Business Intelligence tool built with React, TypeScript, and Supabase.
+A cutting-edge Business Intelligence dashboard built with the latest React ecosystem.
 
-## Quick Start
+## 🚀 Tech Stack
+
+- **React 18.3** - Latest React with concurrent features
+- **TypeScript 5.6** - Type-safe development
+- **Vite 5.4** - Lightning-fast build tool
+- **Tailwind CSS 3.4** - Modern utility-first CSS
+- **Zustand 5.0** - Lightweight state management
+- **React Query 5.0** - Server state management
+- **Supabase** - Backend-as-a-Service
+- **Recharts** - Modern charting library
+
+## 📁 Project Structure
+
+```
+src/
+├── components/
+│   ├── ui/           # Reusable UI components
+│   ├── Auth.tsx      # Authentication
+│   └── Layout.tsx    # App layout
+├── pages/            # Route components
+├── hooks/            # Custom React hooks
+├── store/            # Zustand stores
+├── lib/              # External libraries
+└── types/            # TypeScript definitions
+```
+
+## ⚡ Quick Start
 
 ```bash
+# Install dependencies
 npm install
+
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-## Documentation
+## 🎯 Features
 
-- [Features](./docs/FEATURES.md) - Complete feature list
-- [Setup Guide](./docs/README.md) - Detailed setup instructions
-- [Large Dataset Guide](./docs/LARGE-DATASET-GUIDE.md) - Handling large datasets
-- [Enterprise Setup](./docs/ENTERPRISE-SETUP.md) - Enterprise features
-
-## Project Structure
-
-```
-BI project/
-├── src/
-│   ├── components/     # React components
-│   ├── contexts/       # React contexts
-│   ├── hooks/          # Custom hooks
-│   ├── lib/            # Libraries & utilities
-│   ├── pages/          # Page components
-│   ├── utils/          # Utility functions
-│   └── workers/        # Web workers
-├── backend/            # Express backend server
-├── database/           # SQL migration files
-├── docs/               # Documentation
-└── samples/            # Sample datasets
-```
-
-## Features
-
-- 📊 Multiple chart types (Bar, Line, Pie, Area, Scatter, Radar, Heatmap, Treemap)
-- 📈 KPI cards and data tables
-- 🎨 Dark/Light theme
-- 📤 Export to PDF, CSV, Excel
-- 🔍 Natural language queries
-- 🤖 AI-powered insights
+- 📊 Interactive charts (Bar, Line, Pie)
 - 📱 Responsive design
+- 🌙 Dark/Light theme
+- 🔐 Secure authentication
+- 📈 Real-time data updates
+- 🎨 Modern UI/UX
+- 📤 Share visualizations with Web Share API
+- 📥 Download detailed reports
+- 🗂️ Dataset information display
 
-## Tech Stack
+## 🏗️ Architecture
 
-- React 18 + TypeScript
-- Vite
-- Supabase (Auth + Database)
-- Recharts
-- ExcelJS
-
-## Dataset Limits
-
-- Maximum: 50,000 rows per dataset
-- Recommended: Under 30,000 rows for best performance
+- **Component-based** - Modular React components
+- **Type-safe** - Full TypeScript coverage
+- **State management** - Zustand for client state
+- **Data fetching** - React Query for server state
+- **Styling** - Tailwind CSS utility classes
+- **Build optimization** - Vite with code splitting
