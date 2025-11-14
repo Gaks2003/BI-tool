@@ -1,0 +1,11 @@
+product,price,stock,category,rating
+Laptop,999,45,Electronics,4.5
+Mouse,25,150,Electronics,4.2
+Keyboard,75,80,Electronics,4.7
+Monitor,350,30,Electronics,4.6
+Desk,450,20,Furniture,4.3
+Chair,250,35,Furniture,4.4
+Lamp,60,90,Furniture,4.1
+Notebook,5,500,Stationery,4.0
+Pen,2,1000,Stationery,3.9
+Backpack,80,60,Accessories,4.5

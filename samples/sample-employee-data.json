@@ -1,0 +1,12 @@
+[
+  { "name": "John Doe", "department": "Sales", "salary": 65000, "performance": 92, "years": 5 },
+  { "name": "Jane Smith", "department": "Marketing", "salary": 72000, "performance": 88, "years": 3 },
+  { "name": "Bob Johnson", "department": "Engineering", "salary": 95000, "performance": 95, "years": 7 },
+  { "name": "Alice Brown", "department": "Sales", "salary": 68000, "performance": 90, "years": 4 },
+  { "name": "Charlie Wilson", "department": "Engineering", "salary": 88000, "performance": 87, "years": 6 },
+  { "name": "Diana Lee", "department": "Marketing", "salary": 70000, "performance": 91, "years": 2 },
+  { "name": "Eve Davis", "department": "HR", "salary": 62000, "performance": 85, "years": 8 },
+  { "name": "Frank Miller", "department": "Engineering", "salary": 92000, "performance": 93, "years": 5 },
+  { "name": "Grace Taylor", "department": "Sales", "salary": 71000, "performance": 89, "years": 3 },
+  { "name": "Henry Anderson", "department": "HR", "salary": 64000, "performance": 86, "years": 4 }
+]
