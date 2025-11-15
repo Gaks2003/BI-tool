@@ -1,0 +1,106 @@
+employee_id,name,department,performance_score,salary,years_experience,age,gender,location,project_count
+1,John Smith,Engineering,87,75000,5,28,Male,New York,12
+2,Sarah Johnson,Marketing,91,68000,3,26,Female,California,8
+3,Mike Davis,HR,85,62000,7,32,Male,Texas,6
+4,Emily Brown,Sales,89,71000,4,29,Female,Florida,15
+5,David Wilson,Engineering,93,82000,6,31,Male,New York,18
+6,Lisa Garcia,Marketing,78,59000,2,24,Female,California,5
+7,Robert Miller,HR,82,65000,8,35,Male,Texas,7
+8,Jennifer Lee,Sales,95,79000,5,30,Female,Florida,20
+9,Michael Taylor,Engineering,88,77000,4,27,Male,New York,14
+10,Amanda White,Marketing,84,63000,3,25,Female,California,9
+11,Christopher Anderson,HR,90,68000,6,33,Male,Texas,8
+12,Jessica Thomas,Sales,86,73000,7,34,Female,Florida,16
+13,Daniel Jackson,Engineering,92,85000,8,36,Male,New York,22
+14,Ashley Martinez,Marketing,79,61000,2,23,Female,California,6
+15,Matthew Rodriguez,HR,87,66000,5,30,Male,Texas,9
+16,Stephanie Lewis,Sales,94,81000,6,32,Female,Florida,19
+17,Andrew Clark,Engineering,85,74000,3,26,Male,New York,11
+18,Nicole Walker,Marketing,88,65000,4,28,Female,California,10
+19,Joshua Hall,HR,83,63000,9,37,Male,Texas,7
+20,Megan Allen,Sales,91,76000,5,31,Female,Florida,17
+21,Ryan Young,Engineering,89,78000,7,33,Male,New York,16
+22,Kimberly King,Marketing,82,60000,3,25,Female,California,8
+23,Brandon Wright,HR,86,67000,6,32,Male,Texas,10
+24,Brittany Lopez,Sales,93,80000,8,35,Female,Florida,21
+25,Justin Hill,Engineering,90,83000,9,38,Male,New York,24
+26,Samantha Scott,Marketing,85,64000,4,27,Female,California,11
+27,Tyler Green,HR,88,69000,7,34,Male,Texas,12
+28,Rachel Adams,Sales,87,74000,5,29,Female,Florida,18
+29,Kevin Baker,Engineering,91,81000,6,30,Male,New York,19
+30,Lauren Gonzalez,Marketing,83,62000,2,24,Female,California,7
+31,Jonathan Nelson,HR,89,70000,8,36,Male,Texas,13
+32,Heather Carter,Sales,92,78000,7,33,Female,Florida,20
+33,Nathan Mitchell,Engineering,86,76000,4,28,Male,New York,13
+34,Vanessa Perez,Marketing,87,66000,5,30,Female,California,12
+35,Zachary Roberts,HR,84,64000,6,31,Male,Texas,9
+36,Christina Turner,Sales,90,77000,6,32,Female,Florida,17
+37,Aaron Phillips,Engineering,88,79000,5,29,Male,New York,15
+38,Melissa Campbell,Marketing,81,58000,3,26,Female,California,6
+39,Jeremy Parker,HR,85,65000,7,34,Male,Texas,11
+40,Amber Evans,Sales,94,82000,8,36,Female,Florida,22
+41,Sean Edwards,Engineering,92,84000,9,37,Male,New York,25
+42,Tiffany Collins,Marketing,86,63000,4,27,Female,California,9
+43,Cody Stewart,HR,87,68000,6,33,Male,Texas,10
+44,Danielle Sanchez,Sales,89,75000,5,30,Female,Florida,16
+45,Trevor Morris,Engineering,85,75000,3,25,Male,New York,10
+46,Courtney Rogers,Marketing,88,67000,6,31,Female,California,13
+47,Caleb Reed,HR,90,71000,8,35,Male,Texas,14
+48,Alexis Cook,Sales,93,79000,7,34,Female,Florida,19
+49,Ian Morgan,Engineering,87,77000,4,27,Male,New York,12
+50,Jasmine Bell,Marketing,84,61000,3,25,Female,California,8
+51,Garrett Murphy,HR,86,66000,5,30,Male,Texas,9
+52,Kayla Bailey,Sales,91,76000,6,32,Female,Florida,18
+53,Dustin Rivera,Engineering,89,80000,7,34,Male,New York,17
+54,Jenna Cooper,Marketing,82,59000,2,23,Female,California,5
+55,Blake Richardson,HR,88,69000,9,38,Male,Texas,15
+56,Paige Cox,Sales,95,83000,8,36,Female,Florida,23
+57,Mason Ward,Engineering,90,82000,6,31,Male,New York,20
+58,Brooke Torres,Marketing,85,64000,4,28,Female,California,10
+59,Hunter Peterson,HR,83,63000,7,33,Male,Texas,8
+60,Sydney Gray,Sales,92,78000,5,29,Female,Florida,17
+61,Colton Ramirez,Engineering,88,78000,5,30,Male,New York,14
+62,Mackenzie James,Marketing,87,65000,3,26,Female,California,11
+63,Landon Watson,HR,89,70000,8,35,Male,Texas,12
+64,Jocelyn Brooks,Sales,86,73000,6,31,Female,Florida,15
+65,Bryce Kelly,Engineering,91,81000,7,33,Male,New York,18
+66,Marissa Sanders,Marketing,84,62000,4,27,Female,California,9
+67,Tristan Price,HR,87,67000,6,32,Male,Texas,10
+68,Natalie Bennett,Sales,93,80000,8,35,Female,Florida,21
+69,Devin Wood,Engineering,85,76000,3,26,Male,New York,11
+70,Gabrielle Barnes,Marketing,88,66000,5,29,Female,California,12
+71,Wyatt Ross,HR,90,71000,9,37,Male,Texas,16
+72,Sabrina Henderson,Sales,89,75000,7,33,Female,Florida,18
+73,Nolan Coleman,Engineering,92,83000,8,35,Male,New York,22
+74,Chloe Jenkins,Marketing,81,60000,2,24,Female,California,6
+75,Brayden Perry,HR,86,65000,5,30,Male,Texas,9
+76,Destiny Powell,Sales,94,81000,6,32,Female,Florida,19
+77,Hayden Long,Engineering,87,77000,4,28,Male,New York,13
+78,Jordyn Patterson,Marketing,85,63000,3,25,Female,California,8
+79,Carson Hughes,HR,88,68000,7,34,Male,Texas,11
+80,Kendall Flores,Sales,91,77000,5,30,Female,Florida,16
+81,Jaxon Washington,Engineering,89,79000,6,31,Male,New York,15
+82,Skylar Butler,Marketing,83,61000,4,27,Female,California,7
+83,Easton Simmons,HR,87,66000,8,36,Male,Texas,13
+84,Addison Foster,Sales,92,78000,7,34,Female,Florida,20
+85,Grayson Gonzales,Engineering,90,82000,9,38,Male,New York,24
+86,Avery Bryant,Marketing,86,64000,3,26,Female,California,10
+87,Liam Alexander,HR,84,64000,6,32,Male,Texas,8
+88,Zoe Russell,Sales,95,84000,8,36,Female,Florida,25
+89,Owen Griffin,Engineering,88,78000,5,29,Male,New York,16
+90,Layla Diaz,Marketing,82,59000,2,23,Female,California,5
+91,Luke Hayes,HR,89,69000,7,33,Male,Texas,12
+92,Aria Myers,Sales,93,79000,6,31,Female,Florida,18
+93,Ethan Ford,Engineering,91,81000,8,35,Male,New York,21
+94,Maya Hamilton,Marketing,87,65000,4,28,Female,California,11
+95,Aiden Graham,HR,85,65000,5,30,Male,Texas,9
+96,Isabella Sullivan,Sales,90,76000,7,34,Female,Florida,17
+97,Jackson Wallace,Engineering,86,77000,3,27,Male,New York,12
+98,Sophia Woods,Marketing,88,67000,6,32,Female,California,14
+99,Logan Cole,HR,92,72000,9,37,Male,Texas,18
+100,Emma West,Sales,89,75000,5,29,Female,Florida,16
+101,Mason Jordan,Engineering,87,78000,4,28,Male,New York,13
+102,Olivia Owens,Marketing,84,62000,3,25,Female,California,8
+103,Noah Reynolds,HR,88,68000,6,33,Male,Texas,11
+104,Ava Fisher,Sales,94,82000,8,36,Female,Florida,22
+105,Liam Ellis,Engineering,90,83000,7,34,Male,New York,19

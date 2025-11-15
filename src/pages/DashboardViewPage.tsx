@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Plus, TrendingUp, Trash2, X, Maximize2, FileText, Download, Share2, Database } from 'lucide-react'
+import { Plus, TrendingUp, Trash2, X, Maximize2, FileText, Download, Share2, Database, MessageSquare } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useStore'
@@ -11,6 +11,12 @@ import {
   ScatterChart, Scatter, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts'
+import BubbleChart from '@/components/charts/BubbleChart'
+import BoxPlotChart from '@/components/charts/BoxPlotChart'
+import WaterfallChart from '@/components/charts/WaterfallChart'
+import HeatmapChart from '@/components/charts/HeatmapChart'
+import { AIAssistant } from '@/components/AIAssistant'
+import { InsightPanel } from '@/components/InsightPanel'
 import type { Dashboard, Visualization } from '@/types'
 
 export default function DashboardViewPage() {
@@ -25,9 +31,14 @@ export default function DashboardViewPage() {
     xAxis: '', 
     yAxis: '',
     metric: '',
-    aggregation: 'sum'
+    aggregation: 'sum',
+    maxEntries: 25,
+    sizeField: ''
   })
   const [selectedViz, setSelectedViz] = useState<Visualization | null>(null)
+  const [chartPages, setChartPages] = useState<Record<string, number>>({})
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false)
+  const [selectedChartForAI, setSelectedChartForAI] = useState<{ data: any[], type: string } | null>(null)
 
   const chartTypeNames = {
     bar: 'Bar Chart',
@@ -39,7 +50,10 @@ export default function DashboardViewPage() {
     heatmap: 'Heatmap',
     treemap: 'Treemap',
     kpi: 'KPI Card',
-    table: 'Data Table'
+    table: 'Data Table',
+    bubble: 'Bubble Chart',
+    boxplot: 'Box Plot',
+    waterfall: 'Waterfall Chart'
   }
 
   useEffect(() => {
@@ -96,9 +110,12 @@ export default function DashboardViewPage() {
   const createVisualization = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const dataset = datasets?.find(d => d.id === formData.datasetId)
       const config = formData.type === 'kpi' 
-        ? { metric: formData.metric, aggregation: formData.aggregation }
-        : { xAxis: formData.xAxis, yAxis: formData.yAxis }
+        ? { metric: formData.metric, aggregation: formData.aggregation, maxEntries: formData.maxEntries }
+        : formData.type === 'heatmap'
+          ? { xAxis: formData.xAxis, yAxis: formData.yAxis, metric: formData.metric, maxEntries: formData.maxEntries }
+          : { xAxis: formData.xAxis, yAxis: formData.yAxis, maxEntries: formData.maxEntries, sizeField: formData.sizeField || undefined }
 
       const { error } = await supabase
         .from('visualizations')
@@ -109,7 +126,6 @@ export default function DashboardViewPage() {
           type: formData.type,
           config
         }])
-
       if (error) throw error
       
       setFormData({ 
@@ -119,7 +135,9 @@ export default function DashboardViewPage() {
         xAxis: '', 
         yAxis: '',
         metric: '',
-        aggregation: 'sum'
+        aggregation: 'sum',
+        maxEntries: 25,
+        sizeField: ''
       })
       setShowForm(false)
       refetch()
@@ -185,22 +203,129 @@ export default function DashboardViewPage() {
     
     // For charts
     if (viz.config.xAxis && viz.config.yAxis) {
+      if (viz.type === 'pie') {
+        // Special analysis for pie charts with grouped data
+        const groupedData = data.reduce((acc, item) => {
+          const category = item[viz.config.xAxis!]
+          const value = parseFloat(item[viz.config.yAxis!]) || 0
+          acc[category] = (acc[category] || 0) + value
+          return acc
+        }, {} as Record<string, number>)
+        
+        const sortedGroups = Object.entries(groupedData)
+          .map(([name, value]) => ({ name, value, percentage: (value / Object.values(groupedData).reduce((a, b) => a + b, 0) * 100) }))
+          .sort((a, b) => b.value - a.value)
+        
+        const topGroup = sortedGroups[0]
+        const bottomGroup = sortedGroups[sortedGroups.length - 1]
+        const totalValue = Object.values(groupedData).reduce((a, b) => a + b, 0)
+        
+        return {
+          type: 'Pie Chart Analysis',
+          summary: `Distribution of ${viz.config.yAxis} across ${viz.config.xAxis} categories`,
+          insights: [
+            `Dominant Category: ${topGroup.name} (${topGroup.percentage.toFixed(1)}% of total)`,
+            `Smallest Category: ${bottomGroup.name} (${bottomGroup.percentage.toFixed(1)}% of total)`,
+            `Performance Gap: ${(topGroup.value - bottomGroup.value).toLocaleString()} points difference`,
+            `Category Distribution: ${sortedGroups.length} distinct groups identified`,
+            `Market Share Leader: ${topGroup.name} with ${topGroup.value.toLocaleString()} total score`,
+            `Balanced vs Skewed: ${topGroup.percentage > 40 ? 'Highly concentrated' : topGroup.percentage > 25 ? 'Moderately concentrated' : 'Well distributed'} data`
+          ]
+        }
+      }
+      
       const xValues = [...new Set(data.map(item => item[viz.config.xAxis!]))]
       const yValues = data.map(item => parseFloat(item[viz.config.yAxis!]) || 0).filter(val => !isNaN(val))
+      
+      // Handle case where Y-axis is not numeric
+      if (yValues.length === 0) {
+        return {
+          type: `${viz.type.charAt(0).toUpperCase() + viz.type.slice(1)} Chart Analysis`,
+          summary: `Invalid chart configuration: ${viz.config.yAxis} contains non-numeric data`,
+          insights: [
+            `Chart Type: ${viz.type.toUpperCase()}`,
+            `X-Axis Field: ${viz.config.xAxis} (${xValues.length} categories)`,
+            `Y-Axis Field: ${viz.config.yAxis} (non-numeric)`,
+            `Suggestion: Use numeric fields like salary, performance_score, age, or years_experience for Y-axis`,
+            `Available Numeric Fields: salary, performance_score, years_experience, age, project_count`,
+            `Current Data Type: Text/String values cannot be plotted on charts`
+          ]
+        }
+      }
+      
       const sum = yValues.reduce((a, b) => a + b, 0)
       const avg = yValues.length > 0 ? sum / yValues.length : 0
+      const max = Math.max(...yValues)
+      const min = Math.min(...yValues)
+      const maxItem = data.find(item => parseFloat(item[viz.config.yAxis!]) === max)
+      const minItem = data.find(item => parseFloat(item[viz.config.yAxis!]) === min)
+      
+      // Chart-specific insights
+      const getChartInsights = () => {
+        switch (viz.type) {
+          case 'bar':
+            return [
+              `Top Performer: ${maxItem?.[viz.config.xAxis!]} with ${max.toLocaleString()}`,
+              `Lowest Performer: ${minItem?.[viz.config.xAxis!]} with ${min.toLocaleString()}`,
+              `Performance Range: ${(max - min).toLocaleString()} point spread`,
+              `Above Average: ${yValues.filter(v => v > avg).length} out of ${yValues.length} categories`,
+              `Consistency Level: ${max - min < avg * 0.3 ? 'High consistency' : max - min < avg ? 'Moderate variation' : 'High variation'}`,
+              `Growth Opportunity: ${((max - avg) / avg * 100).toFixed(1)}% potential improvement for average performers`
+            ]
+          case 'line':
+            const trend = yValues.length > 1 ? (yValues[yValues.length - 1] - yValues[0]) / yValues[0] * 100 : 0
+            return [
+              `Overall Trend: ${trend > 5 ? 'Strong upward' : trend > 0 ? 'Slight upward' : trend < -5 ? 'Strong downward' : trend < 0 ? 'Slight downward' : 'Stable'} (${trend.toFixed(1)}%)`,
+              `Peak Performance: ${max.toLocaleString()} at ${maxItem?.[viz.config.xAxis!]}`,
+              `Lowest Point: ${min.toLocaleString()} at ${minItem?.[viz.config.xAxis!]}`,
+              `Volatility: ${((max - min) / avg * 100).toFixed(1)}% variation from average`,
+              `Data Points: ${yValues.length} time periods analyzed`,
+              `Trend Direction: ${trend > 0 ? 'Positive momentum' : trend < 0 ? 'Declining pattern' : 'Stable performance'}`
+            ]
+          case 'area':
+            return [
+              `Cumulative Total: ${sum.toLocaleString()} across all periods`,
+              `Peak Contribution: ${maxItem?.[viz.config.xAxis!]} (${(max/sum*100).toFixed(1)}% of total)`,
+              `Growth Pattern: ${trend > 0 ? 'Expanding area' : trend < 0 ? 'Contracting area' : 'Stable area'}`,
+              `Distribution: ${yValues.filter(v => v > avg).length} periods above average`,
+              `Concentration: ${max > avg * 2 ? 'Highly concentrated peaks' : 'Evenly distributed values'}`,
+              `Performance Stability: ${(min/max*100).toFixed(1)}% consistency ratio`
+            ]
+          case 'scatter':
+            const correlation = yValues.length > 1 ? 'Moderate' : 'Insufficient data'
+            return [
+              `Data Clusters: ${xValues.length} distinct ${viz.config.xAxis} values`,
+              `Value Range: ${min.toLocaleString()} to ${max.toLocaleString()}`,
+              `Outliers: ${yValues.filter(v => v > avg + (max-min)*0.3 || v < avg - (max-min)*0.3).length} potential outliers`,
+              `Correlation Pattern: ${correlation} relationship observed`,
+              `Data Density: ${(yValues.length/xValues.length).toFixed(1)} average points per category`,
+              `Distribution: ${yValues.filter(v => v > avg).length}/${yValues.length} points above average`
+            ]
+          case 'radar':
+            return [
+              `Strongest Dimension: ${maxItem?.[viz.config.xAxis!]} (${max.toLocaleString()})`,
+              `Weakest Dimension: ${minItem?.[viz.config.xAxis!]} (${min.toLocaleString()})`,
+              `Balance Score: ${(min/max*100).toFixed(1)}% (higher = more balanced)`,
+              `Performance Spread: ${(max-min).toLocaleString()} point difference`,
+              `Above Average Dimensions: ${yValues.filter(v => v > avg).length}/${yValues.length}`,
+              `Overall Profile: ${min/max > 0.8 ? 'Well-balanced' : min/max > 0.6 ? 'Moderately balanced' : 'Highly specialized'}`
+            ]
+          default:
+            return [
+              `Top Performer: ${maxItem?.[viz.config.xAxis!]} (${max.toLocaleString()})`,
+              `Bottom Performer: ${minItem?.[viz.config.xAxis!]} (${min.toLocaleString()})`,
+              `Performance Gap: ${(max-min).toLocaleString()} points`,
+              `Average Performance: ${avg.toFixed(2)}`,
+              `Data Quality: ${yValues.length} valid measurements`,
+              `Variation Level: ${((max-min)/avg*100).toFixed(1)}% coefficient of variation`
+            ]
+        }
+      }
       
       return {
         type: `${viz.type.charAt(0).toUpperCase() + viz.type.slice(1)} Chart Analysis`,
-        summary: `Relationship between ${viz.config.xAxis} and ${viz.config.yAxis}`,
-        insights: [
-          `Unique Categories (${viz.config.xAxis}): ${xValues.length}`,
-          `Total ${viz.config.yAxis}: ${sum.toLocaleString()}`,
-          `Average ${viz.config.yAxis}: ${avg.toFixed(2)}`,
-          `Highest Value: ${Math.max(...yValues).toLocaleString()}`,
-          `Lowest Value: ${Math.min(...yValues).toLocaleString()}`,
-          `Data Distribution: ${yValues.length} valid data points`
-        ]
+        summary: `${viz.type === 'line' ? 'Trend analysis of' : viz.type === 'scatter' ? 'Correlation between' : viz.type === 'radar' ? 'Multi-dimensional view of' : 'Comparative analysis of'} ${viz.config.yAxis} across ${viz.config.xAxis}`,
+        insights: getChartInsights()
       }
     }
     
@@ -257,6 +382,11 @@ Dataset Information:
     }
   }
 
+  const openAIAssistant = (chartData: any[], chartType: string) => {
+    setSelectedChartForAI({ data: chartData, type: chartType })
+    setAiAssistantOpen(true)
+  }
+
   const calculateKPI = (data: any[], metric: string, aggregation: string) => {
     if (!data || data.length === 0) return 0
     
@@ -276,19 +406,39 @@ Dataset Information:
     const dataset = datasets?.find(d => d.id === viz.dataset_id)
     if (!dataset || !Array.isArray(dataset.data)) return null
 
-    // Remove duplicates based on xAxis field for charts
+    // Group and aggregate data for better analysis
+    const maxEntries = viz.config.maxEntries || 25
     let processedData = dataset.data
-    if (viz.config.xAxis && viz.type !== 'table') {
-      const seen = new Set()
-      processedData = dataset.data.filter(item => {
-        const key = item[viz.config.xAxis!]
-        if (seen.has(key)) return false
-        seen.add(key)
-        return true
-      })
+    
+    // For charts, group by category and aggregate values
+    if (viz.config.xAxis && viz.config.yAxis && viz.type !== 'table') {
+      // Check if Y-axis is numeric
+      const sampleValue = dataset.data[0]?.[viz.config.yAxis!]
+      const isNumericY = !isNaN(parseFloat(sampleValue))
+      
+      if (isNumericY) {
+        const groupedData = dataset.data.reduce((acc, item) => {
+          const category = item[viz.config.xAxis!]
+          const value = parseFloat(item[viz.config.yAxis!]) || 0
+          if (!acc[category]) {
+            acc[category] = { [viz.config.xAxis!]: category, [viz.config.yAxis!]: 0, count: 0 }
+          }
+          acc[category][viz.config.yAxis!] += value
+          acc[category].count += 1
+          return acc
+        }, {} as Record<string, any>)
+        
+        processedData = Object.values(groupedData)
+          .sort((a, b) => b[viz.config.yAxis!] - a[viz.config.yAxis!])
+          .slice(0, maxEntries === 0 ? undefined : maxEntries)
+      } else {
+        // If Y-axis is not numeric, just take unique entries
+        processedData = dataset.data
+          .slice(0, maxEntries === 0 ? undefined : maxEntries)
+      }
     }
     
-    const data = processedData.slice(0, 50)
+    const data = processedData
     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16']
 
     // KPI Card
@@ -431,11 +581,30 @@ Dataset Information:
               <Tooltip />
             </RadarChart>
           )
+        case 'bubble':
+          // Find a numeric field for bubble size
+          const sizeField = viz.config.sizeField || 'project_count'
+          return <BubbleChart data={data} xAxis={viz.config.xAxis!} yAxis={viz.config.yAxis!} sizeField={sizeField} />
+        case 'boxplot':
+          return <BoxPlotChart data={data} category={viz.config.xAxis!} metric={viz.config.yAxis!} />
+        case 'waterfall':
+          return <WaterfallChart data={data} category={viz.config.xAxis!} value={viz.config.yAxis!} />
+        case 'heatmap':
+          return <HeatmapChart data={data} xAxis={viz.config.xAxis!} yAxis={viz.config.yAxis!} metric={viz.config.metric || 'performance_score'} />
         case 'pie':
-          const pieData = data.map((item, index) => ({
-            name: item[viz.config.xAxis],
-            value: parseFloat(item[viz.config.yAxis]) || 0
-          }))
+          // Group data by category and aggregate values
+          const groupedData = processedData.reduce((acc, item) => {
+            const category = item[viz.config.xAxis!]
+            const value = parseFloat(item[viz.config.yAxis!]) || 0
+            acc[category] = (acc[category] || 0) + value
+            return acc
+          }, {} as Record<string, number>)
+          
+          const pieData = Object.entries(groupedData)
+            .map(([name, value]) => ({ name, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 8)
+          
           return (
             <PieChart>
               <Pie
@@ -458,10 +627,24 @@ Dataset Information:
       }
     }
 
+    const totalEntries = viz.type === 'table' ? dataset.data.length : processedData.length
+    const isLimited = maxEntries > 0 && totalEntries > maxEntries && viz.type !== 'table'
+    const showViewAll = isLimited && viz.type !== 'table'
+    
     return (
       <div key={viz.id} className="card relative group cursor-pointer" onClick={() => setSelectedViz(viz)}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">{viz.name}</h3>
+          <div>
+            <h3 className="text-lg font-semibold">{viz.name}</h3>
+            <p className="text-sm text-gray-500">
+              {viz.type === 'table' 
+                ? `Showing ${Math.min(50, dataset.data.length)} of ${dataset.data.length} records`
+                : isLimited 
+                  ? `Top ${processedData.length} entries (${dataset.data.length} total records)`
+                  : `${processedData.length} entries from ${dataset.data.length} records`
+              }
+            </p>
+          </div>
           <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={(e) => { e.stopPropagation(); setSelectedViz(viz); }}
@@ -484,6 +667,46 @@ Dataset Information:
             </ResponsiveContainer>
           </div>
         </div>
+        
+        <div className="mt-4">
+          <InsightPanel
+            chartData={data}
+            chartType={viz.type}
+            xField={viz.config.xAxis || ''}
+            yField={viz.config.yAxis || ''}
+          />
+        </div>
+        
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              openAIAssistant(data, viz.type)
+            }}
+            className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Ask AI Assistant</span>
+          </button>
+        </div>
+        {showViewAll && (
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                // Create a new visualization with all entries
+                const newConfig = { ...viz.config, maxEntries: 0 }
+                supabase.from('visualizations').update({ config: newConfig }).eq('id', viz.id).then(() => refetch())
+              }}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              View All {dataset.data.length} Entries
+            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Note: For better analysis, consider grouping by department instead of individual names
+            </p>
+          </div>
+        )}
       </div>
     )
   }
@@ -518,13 +741,20 @@ Dataset Information:
                 onChange={(e) => handleTypeChange(e.target.value)}
                 className="input"
               >
-                <optgroup label="Charts">
+                <optgroup label="Basic Charts">
                   <option value="bar">Bar Chart</option>
                   <option value="line">Line Chart</option>
                   <option value="pie">Pie Chart</option>
                   <option value="area">Area Chart</option>
                   <option value="scatter">Scatter Plot</option>
+                </optgroup>
+                <optgroup label="Advanced Charts">
                   <option value="radar">Radar Chart</option>
+                  <option value="bubble">Bubble Chart</option>
+                  <option value="boxplot">Box Plot</option>
+                  <option value="waterfall">Waterfall Chart</option>
+                  <option value="heatmap">Heatmap</option>
+                  <option value="treemap">Treemap</option>
                 </optgroup>
                 <optgroup label="Data Views">
                   <option value="kpi">KPI Card</option>
@@ -609,7 +839,59 @@ Dataset Information:
                     ))
                   }
                 </select>
+                {formData.type === 'bubble' && (
+                  <select
+                    value={formData.sizeField || ''}
+                    onChange={(e) => setFormData({...formData, sizeField: e.target.value})}
+                    className="input"
+                  >
+                    <option value="">Select Size field (optional)</option>
+                    {formData.datasetId && datasets?.find(d => d.id === formData.datasetId)?.data?.[0] && 
+                      Object.keys(datasets.find(d => d.id === formData.datasetId)!.data[0])
+                        .filter(key => !isNaN(parseFloat(datasets.find(d => d.id === formData.datasetId)!.data[0][key])))
+                        .map(key => (
+                          <option key={key} value={key}>{key}</option>
+                        ))
+                    }
+                  </select>
+                )}
+                {formData.type === 'heatmap' && (
+                  <select
+                    value={formData.metric}
+                    onChange={(e) => setFormData({...formData, metric: e.target.value})}
+                    className="input"
+                    required
+                  >
+                    <option value="">Select Metric field</option>
+                    {formData.datasetId && datasets?.find(d => d.id === formData.datasetId)?.data?.[0] && 
+                      Object.keys(datasets.find(d => d.id === formData.datasetId)!.data[0])
+                        .filter(key => !isNaN(parseFloat(datasets.find(d => d.id === formData.datasetId)!.data[0][key])))
+                        .map(key => (
+                          <option key={key} value={key}>{key}</option>
+                        ))
+                    }
+                  </select>
+                )}
               </>
+            )}
+
+            {formData.type !== 'table' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Max Entries to Display
+                </label>
+                <select
+                  value={formData.maxEntries}
+                  onChange={(e) => setFormData({...formData, maxEntries: parseInt(e.target.value)})}
+                  className="input"
+                >
+                  <option value={10}>10 entries</option>
+                  <option value={25}>25 entries</option>
+                  <option value={50}>50 entries</option>
+                  <option value={100}>100 entries</option>
+                  <option value={0}>All entries</option>
+                </select>
+              </div>
             )}
 
             <div className="flex space-x-3">
@@ -659,6 +941,18 @@ Dataset Information:
                   >
                     <Download className="h-4 w-4" />
                     <span>Download</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const dataset = datasets?.find(d => d.id === selectedViz.dataset_id)
+                      if (dataset) {
+                        openAIAssistant(dataset.data, selectedViz.type)
+                      }
+                    }}
+                    className="flex items-center space-x-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Ask AI</span>
                   </button>
                   <button
                     onClick={() => setSelectedViz(null)}
@@ -711,9 +1005,9 @@ Dataset Information:
                       const dataset = datasets?.find(d => d.id === selectedViz.dataset_id)
                       if (!dataset) return null
                       
-                      // Remove duplicates for expanded view
+                      // For pie charts, use all data for grouping; for other charts, limit for performance
                       let processedData = dataset.data
-                      if (selectedViz.config.xAxis && selectedViz.type !== 'table') {
+                      if (selectedViz.config.xAxis && selectedViz.type !== 'table' && selectedViz.type !== 'pie') {
                         const seen = new Set()
                         processedData = dataset.data.filter(item => {
                           const key = item[selectedViz.config.xAxis!]
@@ -723,7 +1017,7 @@ Dataset Information:
                         })
                       }
                       
-                      const data = processedData.slice(0, 50)
+                      const data = selectedViz.type === 'pie' ? processedData : processedData.slice(0, 50)
                       const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16']
                       
                       switch (selectedViz.type) {
@@ -757,11 +1051,29 @@ Dataset Information:
                               <Area type="monotone" dataKey={selectedViz.config.yAxis} stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
                             </AreaChart>
                           )
+                        case 'bubble':
+                          const sizeField = selectedViz.config.sizeField || 'project_count'
+                          return <BubbleChart data={data} xAxis={selectedViz.config.xAxis!} yAxis={selectedViz.config.yAxis!} sizeField={sizeField} />
+                        case 'boxplot':
+                          return <BoxPlotChart data={data} category={selectedViz.config.xAxis!} metric={selectedViz.config.yAxis!} />
+                        case 'waterfall':
+                          return <WaterfallChart data={data} category={selectedViz.config.xAxis!} value={selectedViz.config.yAxis!} />
+                        case 'heatmap':
+                          return <HeatmapChart data={data} xAxis={selectedViz.config.xAxis!} yAxis={selectedViz.config.yAxis!} metric={selectedViz.config.metric || 'performance_score'} />
                         case 'pie':
-                          const pieData = data.map((item, index) => ({
-                            name: item[selectedViz.config.xAxis!],
-                            value: parseFloat(item[selectedViz.config.yAxis!]) || 0
-                          }))
+                          // Group data by category and aggregate values for expanded view
+                          const groupedData = processedData.reduce((acc, item) => {
+                            const category = item[selectedViz.config.xAxis!]
+                            const value = parseFloat(item[selectedViz.config.yAxis!]) || 0
+                            acc[category] = (acc[category] || 0) + value
+                            return acc
+                          }, {} as Record<string, number>)
+                          
+                          const pieData = Object.entries(groupedData)
+                            .map(([name, value]) => ({ name, value }))
+                            .sort((a, b) => b.value - a.value)
+                            .slice(0, 10)
+                          
                           return (
                             <PieChart>
                               <Pie
@@ -832,6 +1144,13 @@ Dataset Information:
           </div>
         </div>
       )}
+      
+      <AIAssistant
+        chartData={selectedChartForAI?.data || []}
+        chartType={selectedChartForAI?.type || ''}
+        isOpen={aiAssistantOpen}
+        onClose={() => setAiAssistantOpen(false)}
+      />
     </div>
   )
 }

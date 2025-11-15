@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, BarChart3, Calendar, Database, ArrowRight } from 'lucide-react'
+import { Plus, BarChart3, Calendar, Database, ArrowRight, Trash2 } from 'lucide-react'
 import { useDashboards, useCreateDashboard, useDatasets } from '@/hooks/useData'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/useStore'
 import { Button } from '@/components/ui/Button'
 
 export default function DashboardsPage() {
@@ -11,9 +13,32 @@ export default function DashboardsPage() {
   const [description, setDescription] = useState('')
   const [selectedDataset, setSelectedDataset] = useState('')
   
-  const { data: dashboards, isLoading } = useDashboards()
+  const { user } = useAuthStore()
+  const { data: dashboards, isLoading, refetch } = useDashboards()
   const { data: datasets } = useDatasets()
   const createDashboard = useCreateDashboard()
+
+  const deleteDashboard = async (dashboardId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!confirm('Are you sure you want to delete this dashboard? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('dashboards')
+        .delete()
+        .eq('id', dashboardId)
+        .eq('user_id', user?.id)
+      
+      if (error) throw error
+      refetch()
+    } catch (error) {
+      console.error('Error deleting dashboard:', error)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -161,14 +186,23 @@ export default function DashboardsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {dashboards?.map((dashboard) => (
           <Link key={dashboard.id} to={`/dashboard/${dashboard.id}`}>
-            <div className="card hover:shadow-lg transition-all duration-200 cursor-pointer group">
+            <div className="card hover:shadow-lg transition-all duration-200 cursor-pointer group relative">
               <div className="flex items-start justify-between mb-4">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
                   <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {new Date(dashboard.created_at).toLocaleDateString()}
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {new Date(dashboard.created_at).toLocaleDateString()}
+                  </div>
+                  <button
+                    onClick={(e) => deleteDashboard(dashboard.id, e)}
+                    className="p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Delete dashboard"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500 hover:text-red-700" />
+                  </button>
                 </div>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
