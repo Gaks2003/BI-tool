@@ -1,0 +1,4 @@
+cd "f:\New folder\project\BI project"
+git add .
+git commit -m "Add AI insights panel to expanded chart modal view"
+git push origin main

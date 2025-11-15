@@ -1100,6 +1100,45 @@ Dataset Information:
                 </div>
               )}
               
+              {/* AI Insights Panel in Expanded View */}
+              {(() => {
+                const dataset = datasets?.find(d => d.id === selectedViz.dataset_id)
+                if (!dataset) return null
+                
+                let processedData = dataset.data
+                if (selectedViz.config.xAxis && selectedViz.config.yAxis && selectedViz.type !== 'table') {
+                  const sampleValue = dataset.data[0]?.[selectedViz.config.yAxis!]
+                  const isNumericY = !isNaN(parseFloat(sampleValue))
+                  
+                  if (isNumericY) {
+                    const groupedData = dataset.data.reduce((acc, item) => {
+                      const category = item[selectedViz.config.xAxis!]
+                      const value = parseFloat(item[selectedViz.config.yAxis!]) || 0
+                      if (!acc[category]) {
+                        acc[category] = { [selectedViz.config.xAxis!]: category, [selectedViz.config.yAxis!]: 0, count: 0 }
+                      }
+                      acc[category][selectedViz.config.yAxis!] += value
+                      acc[category].count += 1
+                      return acc
+                    }, {} as Record<string, any>)
+                    
+                    processedData = Object.values(groupedData)
+                  }
+                }
+                
+                return (
+                  <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <InsightPanel
+                      chartData={processedData}
+                      chartType={selectedViz.type}
+                      xField={selectedViz.config.xAxis || ''}
+                      yField={selectedViz.config.yAxis || ''}
+                    />
+                  </div>
+                )
+              })()
+              }
+              
               {/* Report Section */}
               {(() => {
                 const dataset = datasets?.find(d => d.id === selectedViz.dataset_id)
