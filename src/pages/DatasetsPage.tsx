@@ -1,35 +1,15 @@
-import { useState, useEffect } from 'react'
-import { Upload, Plus } from 'lucide-react'
-import { supabase, Dataset } from '../lib/supabase'
-import { useAuth } from '../contexts/AuthContext'
+import { useState } from 'react'
+import { Upload, Plus, Database, Calendar } from 'lucide-react'
+import { useDatasets } from '@/hooks/useData'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/useStore'
+import { Button } from '@/components/ui/Button'
 
 export default function DatasetsPage() {
-  const [datasets, setDatasets] = useState<Dataset[]>([])
-  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
-  const { user } = useAuth()
-
-  useEffect(() => {
-    fetchDatasets()
-  }, [])
-
-  const fetchDatasets = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('datasets')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setDatasets(data || [])
-    } catch (error) {
-      console.error('Error fetching datasets:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { user } = useAuthStore()
+  const { data: datasets, isLoading, refetch } = useDatasets()
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -66,68 +46,98 @@ export default function DatasetsPage() {
         if (error) throw error
         setName('')
         setShowForm(false)
-        fetchDatasets()
+        refetch()
       }
     } catch (error) {
       console.error('Error uploading file:', error)
     }
   }
 
-  if (loading) return <div>Loading...</div>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>Datasets</h2>
-        <button onClick={() => setShowForm(true)} className="btn btn-primary">
-          <Plus size={16} style={{ marginRight: '8px' }} />
-          Upload Dataset
-        </button>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Datasets</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Upload and manage your data sources
+          </p>
+        </div>
+        <Button onClick={() => setShowForm(true)} className="flex items-center space-x-2">
+          <Plus className="h-4 w-4" />
+          <span>Upload Dataset</span>
+        </Button>
       </div>
 
       {showForm && (
-        <div className="card" style={{ marginBottom: '20px' }}>
-          <h3>Upload Dataset</h3>
+        <div className="card">
+          <h3 className="text-lg font-semibold mb-4">Upload Dataset</h3>
           <input
             type="text"
             placeholder="Dataset name (optional)"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            style={{ width: '100%', padding: '8px', marginBottom: '8px' }}
+            className="input mb-4"
           />
-          <div style={{ marginBottom: '8px' }}>
-            <label className="btn" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
-              <Upload size={16} style={{ marginRight: '8px' }} />
+          <div className="mb-4">
+            <label className="btn btn-secondary cursor-pointer inline-flex items-center">
+              <Upload className="h-4 w-4 mr-2" />
               Choose File (JSON/CSV)
               <input
                 type="file"
                 accept=".json,.csv"
                 onChange={handleFileUpload}
-                style={{ display: 'none' }}
+                className="hidden"
               />
             </label>
           </div>
-          <button onClick={() => setShowForm(false)} className="btn">Cancel</button>
+          <Button variant="secondary" onClick={() => setShowForm(false)}>
+            Cancel
+          </Button>
         </div>
       )}
 
-      <div className="grid grid-3">
-        {datasets.map(dataset => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {datasets?.map((dataset) => (
           <div key={dataset.id} className="card">
-            <h3>{dataset.name}</h3>
-            <p style={{ color: '#666', marginTop: '8px' }}>
+            <div className="flex items-start justify-between mb-4">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <Database className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <Calendar className="h-4 w-4 mr-1" />
+                {new Date(dataset.created_at).toLocaleDateString()}
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {dataset.name}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm">
               {Array.isArray(dataset.data) ? dataset.data.length : 0} rows
-            </p>
-            <p style={{ fontSize: '12px', color: '#999', marginTop: '12px' }}>
-              Created: {new Date(dataset.created_at).toLocaleDateString()}
             </p>
           </div>
         ))}
       </div>
 
-      {datasets.length === 0 && (
-        <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
-          <p>No datasets yet. Upload your first dataset to get started!</p>
+      {datasets?.length === 0 && (
+        <div className="text-center py-12">
+          <Database className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            No datasets yet
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Upload your first dataset to start creating visualizations
+          </p>
+          <Button onClick={() => setShowForm(true)}>
+            Upload Dataset
+          </Button>
         </div>
       )}
     </div>

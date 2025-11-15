@@ -276,7 +276,19 @@ Dataset Information:
     const dataset = datasets?.find(d => d.id === viz.dataset_id)
     if (!dataset || !Array.isArray(dataset.data)) return null
 
-    const data = dataset.data.slice(0, 50)
+    // Remove duplicates based on xAxis field for charts
+    let processedData = dataset.data
+    if (viz.config.xAxis && viz.type !== 'table') {
+      const seen = new Set()
+      processedData = dataset.data.filter(item => {
+        const key = item[viz.config.xAxis!]
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+    }
+    
+    const data = processedData.slice(0, 50)
     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16']
 
     // KPI Card
@@ -698,7 +710,20 @@ Dataset Information:
                     {(() => {
                       const dataset = datasets?.find(d => d.id === selectedViz.dataset_id)
                       if (!dataset) return null
-                      const data = dataset.data.slice(0, 50)
+                      
+                      // Remove duplicates for expanded view
+                      let processedData = dataset.data
+                      if (selectedViz.config.xAxis && selectedViz.type !== 'table') {
+                        const seen = new Set()
+                        processedData = dataset.data.filter(item => {
+                          const key = item[selectedViz.config.xAxis!]
+                          if (seen.has(key)) return false
+                          seen.add(key)
+                          return true
+                        })
+                      }
+                      
+                      const data = processedData.slice(0, 50)
                       const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16']
                       
                       switch (selectedViz.type) {

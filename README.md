@@ -49,7 +49,6 @@ npm run build
 - 🔐 Secure authentication
 - 📈 Real-time data updates
 - 🎨 Modern UI/UX
-- 📤 Share visualizations with Web Share API
 - 📥 Download detailed reports
 - 🗂️ Dataset information display
 
