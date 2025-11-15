@@ -1,0 +1,4 @@
+cd "f:\New folder\project\BI project"
+git add .
+git commit -m "Fix build: Remove TypeScript strict mode, simplify build process"
+git push origin main
