@@ -1,0 +1,4 @@
+cd "f:\New folder\project\BI project"
+git add .
+git commit -m "Fix AI insights panel: prevent chart expansion on insights click"
+git push origin main

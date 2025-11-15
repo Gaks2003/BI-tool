@@ -120,7 +120,10 @@ export const InsightPanel: React.FC<InsightPanelProps> = ({
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsExpanded(!isExpanded);
+        }}
         className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg"
       >
         <div className="flex items-center space-x-2">
@@ -137,7 +140,10 @@ export const InsightPanel: React.FC<InsightPanelProps> = ({
       </button>
 
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
+        <div 
+          className="px-4 pb-4 space-y-3 border-t border-gray-200 dark:border-gray-700"
+          onClick={(e) => e.stopPropagation()}
+        >
           {insights.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
               No insights available for current data
