@@ -1,0 +1,4 @@
+cd "f:\New folder\project\BI project"
+git add .
+git commit -m "Simplify deployment with peaceiris/actions-gh-pages@v4"
+git push origin main
