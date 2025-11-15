@@ -19,12 +19,16 @@ export interface Visualization {
   dashboard_id: string
   dataset_id: string
   name: string
-  type: 'bar' | 'line' | 'pie' | 'area' | 'scatter' | 'radar' | 'heatmap' | 'treemap' | 'kpi' | 'table'
+  type: 'bar' | 'line' | 'pie' | 'area' | 'scatter' | 'radar' | 'heatmap' | 'treemap' | 'kpi' | 'table' | 'bubble' | 'boxplot' | 'waterfall'
   config: {
     xAxis?: string
     yAxis?: string
     metric?: string
     aggregation?: 'sum' | 'avg' | 'count' | 'min' | 'max'
+    offset?: number
+    limit?: number
+    maxEntries?: number
+    sizeField?: string
   }
   created_at: string
 }
